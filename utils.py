@@ -14,7 +14,8 @@ import math
 import numpy as np
 
 NP_model = pickle.load(gzip.open('data/NP_score.pkl.gz'))
-SA_model = {i[j]: float(i[0]) for i in pickle.load(gzip.open('data/SA_score.pkl.gz')) for j in range(1, len(i))}
+SA_model = {i[j]: float(i[0]) for i in pickle.load(
+    gzip.open('data/SA_score.pkl.gz')) for j in range(1, len(i))}
 
 
 class MolecularMetrics(object):
@@ -66,7 +67,8 @@ class MolecularMetrics(object):
 
     @staticmethod
     def unique_scores(mols):
-        smiles = list(map(lambda x: Chem.MolToSmiles(x) if MolecularMetrics.valid_lambda(x) else '', mols))
+        smiles = list(map(lambda x: Chem.MolToSmiles(
+            x) if MolecularMetrics.valid_lambda(x) else '', mols))
         return np.clip(
             0.75 + np.array(list(map(lambda x: 1 / smiles.count(x) if x != '' else 0, smiles)), dtype=np.float32), 0, 1)
 
@@ -110,7 +112,7 @@ class MolecularMetrics(object):
                       for bit in Chem.rdMolDescriptors.GetMorganFingerprint(mol,
                                                                             2).GetNonzeroElements()) / float(
             mol.GetNumAtoms()) if mol is not None else None
-                  for mol in mols]
+            for mol in mols]
 
         # preventing score explosion for exotic molecules
         scores = list(map(lambda score: score if score is None else (
@@ -118,7 +120,8 @@ class MolecularMetrics(object):
                 -4 - math.log10(-4 - score + 1) if score < -4 else score)), scores))
 
         scores = np.array(list(map(lambda x: -4 if x is None else x, scores)))
-        scores = np.clip(MolecularMetrics.remap(scores, -3, 1), 0.0, 1.0) if norm else scores
+        scores = np.clip(MolecularMetrics.remap(
+            scores, -3, 1), 0.0, 1.0) if norm else scores
 
         return scores
 
@@ -133,7 +136,8 @@ class MolecularMetrics(object):
         scores = [MolecularMetrics._avoid_sanitization_error(lambda: Crippen.MolLogP(mol)) if mol is not None else None
                   for mol in mols]
         scores = np.array(list(map(lambda x: -3 if x is None else x, scores)))
-        scores = np.clip(MolecularMetrics.remap(scores, -2.12178879609, 6.0429063424), 0.0, 1.0) if norm else scores
+        scores = np.clip(MolecularMetrics.remap(
+            scores, -2.12178879609, 6.0429063424), 0.0, 1.0) if norm else scores
 
         return scores
 
@@ -176,7 +180,7 @@ class MolecularMetrics(object):
             macrocyclePenalty = math.log10(2)
 
         score2 = 0. - sizePenalty - stereoPenalty - \
-                 spiroPenalty - bridgePenalty - macrocyclePenalty
+            spiroPenalty - bridgePenalty - macrocyclePenalty
 
         # correction for the fingerprint density
         # not in the original publication, added in version 1.1
@@ -203,16 +207,19 @@ class MolecularMetrics(object):
 
     @staticmethod
     def synthetic_accessibility_score_scores(mols, norm=False):
-        scores = [MolecularMetrics._compute_SAS(mol) if mol is not None else None for mol in mols]
+        scores = [MolecularMetrics._compute_SAS(
+            mol) if mol is not None else None for mol in mols]
         scores = np.array(list(map(lambda x: 10 if x is None else x, scores)))
-        scores = np.clip(MolecularMetrics.remap(scores, 5, 1.5), 0.0, 1.0) if norm else scores
+        scores = np.clip(MolecularMetrics.remap(
+            scores, 5, 1.5), 0.0, 1.0) if norm else scores
 
         return scores
 
     @staticmethod
     def diversity_scores(mols, data):
         rand_mols = np.random.choice(data.data, 100)
-        fps = [Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, 4, nBits=2048) for mol in rand_mols]
+        fps = [Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(
+            mol, 4, nBits=2048) for mol in rand_mols]
 
         scores = np.array(
             list(map(lambda x: MolecularMetrics.__compute_diversity(x, fps) if x is not None else 0, mols)))
@@ -222,8 +229,10 @@ class MolecularMetrics(object):
 
     @staticmethod
     def __compute_diversity(mol, fps):
-        ref_fps = Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, 4, nBits=2048)
-        dist = DataStructs.BulkTanimotoSimilarity(ref_fps, fps, returnDistance=True)
+        ref_fps = Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(
+            mol, 4, nBits=2048)
+        dist = DataStructs.BulkTanimotoSimilarity(
+            ref_fps, fps, returnDistance=True)
         score = np.mean(dist)
         return score
 
@@ -231,7 +240,8 @@ class MolecularMetrics(object):
     def drugcandidate_scores(mols, data):
 
         scores = (MolecularMetrics.constant_bump(
-            MolecularMetrics.water_octanol_partition_coefficient_scores(mols, norm=True), 0.210,
+            MolecularMetrics.water_octanol_partition_coefficient_scores(
+                mols, norm=True), 0.210,
             0.945) + MolecularMetrics.synthetic_accessibility_score_scores(mols,
                                                                            norm=True) + MolecularMetrics.novel_scores(
             mols, data) + (1 - MolecularMetrics.novel_scores(mols, data)) * 0.3) / 4
@@ -244,6 +254,7 @@ class MolecularMetrics(object):
                          choicelist=[np.exp(- (x - x_low) ** 2 / decay),
                                      np.exp(- (x - x_high) ** 2 / decay)],
                          default=np.ones_like(x))
+
 
 def mols2grid_image(mols, molsPerRow):
     mols = [e if e is not None else Chem.RWMol() for e in mols]
@@ -265,7 +276,8 @@ def classification_report(data, model, session, sample=False):
 
     y_true = e.flatten()
     y_pred = a.flatten()
-    target_names = [str(Chem.rdchem.BondType.values[int(e)]) for e in data.bond_decoder_m.values()]
+    target_names = [str(Chem.rdchem.BondType.values[int(e)])
+                    for e in data.bond_decoder_m.values()]
 
     print('######## Classification Report ########\n')
     print(sk_classification_report(y_true, y_pred, labels=list(range(len(target_names))),
@@ -276,7 +288,8 @@ def classification_report(data, model, session, sample=False):
 
     y_true = n.flatten()
     y_pred = x.flatten()
-    target_names = [Chem.Atom(e).GetSymbol() for e in data.atom_decoder_m.values()]
+    target_names = [Chem.Atom(e).GetSymbol()
+                    for e in data.atom_decoder_m.values()]
 
     print('######## Classification Report ########\n')
     print(sk_classification_report(y_true, y_pred, labels=list(range(len(target_names))),

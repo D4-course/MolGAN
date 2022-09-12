@@ -21,13 +21,15 @@ class GraphConvolution(Module):
         # input : 16x9x9
         # adj : 16x4x9x9
 
-        hidden = torch.stack([self.linear1(input) for _ in range(adj.size(1))], 1)
+        hidden = torch.stack([self.linear1(input)
+                             for _ in range(adj.size(1))], 1)
         hidden = torch.einsum('bijk,bikl->bijl', (adj, hidden))
         hidden = torch.sum(hidden, 1) + self.linear1(input)
         hidden = activation(hidden) if activation is not None else hidden
         hidden = self.dropout(hidden)
 
-        output = torch.stack([self.linear2(hidden) for _ in range(adj.size(1))], 1)
+        output = torch.stack([self.linear2(hidden)
+                             for _ in range(adj.size(1))], 1)
         output = torch.einsum('bijk,bikl->bijl', (adj, output))
         output = torch.sum(output, 1) + self.linear2(hidden)
         output = activation(output) if activation is not None else output
@@ -49,9 +51,9 @@ class GraphAggregation(Module):
     def forward(self, input, activation):
         i = self.sigmoid_linear(input)
         j = self.tanh_linear(input)
-        output = torch.sum(torch.mul(i,j), 1)
+        output = torch.sum(torch.mul(i, j), 1)
         output = activation(output) if activation is not None\
-                 else output
+            else output
         output = self.dropout(output)
 
         return output

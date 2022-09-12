@@ -8,6 +8,7 @@ import random
 
 from data.sparse_molecular_dataset import SparseMolecularDataset
 
+
 class SparseMoleCular(data.Dataset):
     """Dataset class for the CelebA dataset."""
 
@@ -20,10 +21,10 @@ class SparseMoleCular(data.Dataset):
         """Return one image and its corresponding attribute label."""
 
         return index, self.data.data[index], self.data.smiles[index],\
-               self.data.data_S[index], self.data.data_A[index],\
-               self.data.data_X[index], self.data.data_D[index],\
-               self.data.data_F[index], self.data.data_Le[index],\
-               self.data.data_Lv[index]
+            self.data.data_S[index], self.data.data_A[index],\
+            self.data.data_X[index], self.data.data_D[index],\
+            self.data.data_F[index], self.data.data_Le[index],\
+            self.data.data_Lv[index]
 
     def __len__(self):
         """Return the number of images."""
@@ -37,6 +38,6 @@ def get_loader(image_dir, batch_size, mode, num_workers=1):
 
     data_loader = data.DataLoader(dataset=dataset,
                                   batch_size=batch_size,
-                                  shuffle=(mode=='train'),
+                                  shuffle=(mode == 'train'),
                                   num_workers=num_workers)
     return data_loader

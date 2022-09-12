@@ -55,7 +55,8 @@ class Solver(object):
 
         # Miscellaneous.
         self.use_tensorboard = config.use_tensorboard
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu')
 
         # Directories.
         self.log_dir = config.log_dir
@@ -81,12 +82,15 @@ class Solver(object):
                            self.data.bond_num_types,
                            self.data.atom_num_types,
                            self.dropout)
-        self.D = Discriminator(self.d_conv_dim, self.m_dim, self.b_dim, self.dropout)
-        self.V = Discriminator(self.d_conv_dim, self.m_dim, self.b_dim, self.dropout)
+        self.D = Discriminator(
+            self.d_conv_dim, self.m_dim, self.b_dim, self.dropout)
+        self.V = Discriminator(
+            self.d_conv_dim, self.m_dim, self.b_dim, self.dropout)
 
         self.g_optimizer = torch.optim.Adam(list(self.G.parameters())+list(self.V.parameters()),
                                             self.g_lr, [self.beta1, self.beta2])
-        self.d_optimizer = torch.optim.Adam(self.D.parameters(), self.d_lr, [self.beta1, self.beta2])
+        self.d_optimizer = torch.optim.Adam(
+            self.D.parameters(), self.d_lr, [self.beta1, self.beta2])
         self.print_network(self.G, 'G')
         self.print_network(self.D, 'D')
 
@@ -106,12 +110,18 @@ class Solver(object):
     def restore_model(self, resume_iters):
         """Restore the trained generator and discriminator."""
         print('Loading the trained models from step {}...'.format(resume_iters))
-        G_path = os.path.join(self.model_save_dir, '{}-G.ckpt'.format(resume_iters))
-        D_path = os.path.join(self.model_save_dir, '{}-D.ckpt'.format(resume_iters))
-        V_path = os.path.join(self.model_save_dir, '{}-V.ckpt'.format(resume_iters))
-        self.G.load_state_dict(torch.load(G_path, map_location=lambda storage, loc: storage))
-        self.D.load_state_dict(torch.load(D_path, map_location=lambda storage, loc: storage))
-        self.V.load_state_dict(torch.load(V_path, map_location=lambda storage, loc: storage))
+        G_path = os.path.join(self.model_save_dir,
+                              '{}-G.ckpt'.format(resume_iters))
+        D_path = os.path.join(self.model_save_dir,
+                              '{}-D.ckpt'.format(resume_iters))
+        V_path = os.path.join(self.model_save_dir,
+                              '{}-V.ckpt'.format(resume_iters))
+        self.G.load_state_dict(torch.load(
+            G_path, map_location=lambda storage, loc: storage))
+        self.D.load_state_dict(torch.load(
+            D_path, map_location=lambda storage, loc: storage))
+        self.V.load_state_dict(torch.load(
+            V_path, map_location=lambda storage, loc: storage))
 
     def build_tensorboard(self):
         """Build a tensorboard logger."""
@@ -152,7 +162,7 @@ class Solver(object):
     def label2onehot(self, labels, dim):
         """Convert label indices to one-hot vectors."""
         out = torch.zeros(list(labels.size())+[dim]).to(self.device)
-        out.scatter_(len(out.size())-1,labels.unsqueeze(-1),1.)
+        out.scatter_(len(out.size())-1, labels.unsqueeze(-1), 1.)
         return out
 
     def classification_loss(self, logit, target, dataset='CelebA'):
@@ -174,11 +184,11 @@ class Solver(object):
             return x if len(x) > 1 else x[0]
 
         if method == 'soft_gumbel':
-            softmax = [F.gumbel_softmax(e_logits.contiguous().view(-1,e_logits.size(-1))
+            softmax = [F.gumbel_softmax(e_logits.contiguous().view(-1, e_logits.size(-1))
                        / temperature, hard=False).view(e_logits.size())
                        for e_logits in listify(inputs)]
         elif method == 'hard_gumbel':
-            softmax = [F.gumbel_softmax(e_logits.contiguous().view(-1,e_logits.size(-1))
+            softmax = [F.gumbel_softmax(e_logits.contiguous().view(-1, e_logits.size(-1))
                        / temperature, hard=True).view(e_logits.size())
                        for e_logits in listify(inputs)]
         else:
@@ -194,11 +204,14 @@ class Solver(object):
             if m == 'np':
                 rr *= MolecularMetrics.natural_product_scores(mols, norm=True)
             elif m == 'logp':
-                rr *= MolecularMetrics.water_octanol_partition_coefficient_scores(mols, norm=True)
+                rr *= MolecularMetrics.water_octanol_partition_coefficient_scores(
+                    mols, norm=True)
             elif m == 'sas':
-                rr *= MolecularMetrics.synthetic_accessibility_score_scores(mols, norm=True)
+                rr *= MolecularMetrics.synthetic_accessibility_score_scores(
+                    mols, norm=True)
             elif m == 'qed':
-                rr *= MolecularMetrics.quantitative_estimation_druglikeness_scores(mols, norm=True)
+                rr *= MolecularMetrics.quantitative_estimation_druglikeness_scores(
+                    mols, norm=True)
             elif m == 'novelty':
                 rr *= MolecularMetrics.novel_scores(mols, data)
             elif m == 'dc':
@@ -235,14 +248,16 @@ class Solver(object):
                 z = self.sample_z(a.shape[0])
                 print('[Valid]', '')
             else:
-                mols, _, _, a, x, _, _, _, _ = self.data.next_train_batch(self.batch_size)
+                mols, _, _, a, x, _, _, _, _ = self.data.next_train_batch(
+                    self.batch_size)
                 z = self.sample_z(self.batch_size)
 
             # =================================================================================== #
             #                             1. Preprocess input data                                #
             # =================================================================================== #
 
-            a = torch.from_numpy(a).to(self.device).long()            # Adjacency.
+            # Adjacency.
+            a = torch.from_numpy(a).to(self.device).long()
             x = torch.from_numpy(x).to(self.device).long()            # Nodes.
             a_tensor = self.label2onehot(a, self.b_dim)
             x_tensor = self.label2onehot(x, self.m_dim)
@@ -259,17 +274,20 @@ class Solver(object):
             # Compute loss with fake images.
             edges_logits, nodes_logits = self.G(z)
             # Postprocess with Gumbel softmax
-            (edges_hat, nodes_hat) = self.postprocess((edges_logits, nodes_logits), self.post_method)
+            (edges_hat, nodes_hat) = self.postprocess(
+                (edges_logits, nodes_logits), self.post_method)
             logits_fake, features_fake = self.D(edges_hat, None, nodes_hat)
             d_loss_fake = torch.mean(logits_fake)
 
             # Compute loss for gradient penalty.
-            eps = torch.rand(logits_real.size(0),1,1,1).to(self.device)
-            x_int0 = (eps * a_tensor + (1. - eps) * edges_hat).requires_grad_(True)
-            x_int1 = (eps.squeeze(-1) * x_tensor + (1. - eps.squeeze(-1)) * nodes_hat).requires_grad_(True)
+            eps = torch.rand(logits_real.size(0), 1, 1, 1).to(self.device)
+            x_int0 = (eps * a_tensor + (1. - eps) *
+                      edges_hat).requires_grad_(True)
+            x_int1 = (eps.squeeze(-1) * x_tensor +
+                      (1. - eps.squeeze(-1)) * nodes_hat).requires_grad_(True)
             grad0, grad1 = self.D(x_int0, None, x_int1)
-            d_loss_gp = self.gradient_penalty(grad0, x_int0) + self.gradient_penalty(grad1, x_int1)
-
+            d_loss_gp = self.gradient_penalty(
+                grad0, x_int0) + self.gradient_penalty(grad1, x_int1)
 
             # Backward and optimize.
             d_loss = d_loss_fake + d_loss_real + self.lambda_gp * d_loss_gp
@@ -291,24 +309,29 @@ class Solver(object):
                 # Z-to-target
                 edges_logits, nodes_logits = self.G(z)
                 # Postprocess with Gumbel softmax
-                (edges_hat, nodes_hat) = self.postprocess((edges_logits, nodes_logits), self.post_method)
+                (edges_hat, nodes_hat) = self.postprocess(
+                    (edges_logits, nodes_logits), self.post_method)
                 logits_fake, features_fake = self.D(edges_hat, None, nodes_hat)
                 g_loss_fake = - torch.mean(logits_fake)
 
                 # Real Reward
                 rewardR = torch.from_numpy(self.reward(mols)).to(self.device)
                 # Fake Reward
-                (edges_hard, nodes_hard) = self.postprocess((edges_logits, nodes_logits), 'hard_gumbel')
-                edges_hard, nodes_hard = torch.max(edges_hard, -1)[1], torch.max(nodes_hard, -1)[1]
+                (edges_hard, nodes_hard) = self.postprocess(
+                    (edges_logits, nodes_logits), 'hard_gumbel')
+                edges_hard, nodes_hard = torch.max(
+                    edges_hard, -1)[1], torch.max(nodes_hard, -1)[1]
                 mols = [self.data.matrices2mol(n_.data.cpu().numpy(), e_.data.cpu().numpy(), strict=True)
                         for e_, n_ in zip(edges_hard, nodes_hard)]
                 rewardF = torch.from_numpy(self.reward(mols)).to(self.device)
 
                 # Value loss
-                value_logit_real,_ = self.V(a_tensor, None, x_tensor, torch.sigmoid)
-                value_logit_fake,_ = self.V(edges_hat, None, nodes_hat, torch.sigmoid)
+                value_logit_real, _ = self.V(
+                    a_tensor, None, x_tensor, torch.sigmoid)
+                value_logit_fake, _ = self.V(
+                    edges_hat, None, nodes_hat, torch.sigmoid)
                 g_loss_value = torch.mean((value_logit_real - rewardR) ** 2 + (
-                                           value_logit_fake - rewardF) ** 2)
+                    value_logit_fake - rewardF) ** 2)
                 #rl_loss= -value_logit_fake
                 #f_loss = (torch.mean(features_real, 0) - torch.mean(features_fake, 0)) ** 2
 
@@ -330,11 +353,14 @@ class Solver(object):
             if (i+1) % self.log_step == 0:
                 et = time.time() - start_time
                 et = str(datetime.timedelta(seconds=et))[:-7]
-                log = "Elapsed [{}], Iteration [{}/{}]".format(et, i+1, self.num_iters)
+                log = "Elapsed [{}], Iteration [{}/{}]".format(
+                    et, i+1, self.num_iters)
 
                 # Log update
-                m0, m1 = all_scores(mols, self.data, norm=True)     # 'mols' is output of Fake Reward
-                m0 = {k: np.array(v)[np.nonzero(v)].mean() for k, v in m0.items()}
+                # 'mols' is output of Fake Reward
+                m0, m1 = all_scores(mols, self.data, norm=True)
+                m0 = {k: np.array(v)[np.nonzero(v)].mean()
+                      for k, v in m0.items()}
                 m0.update(m1)
                 loss.update(m0)
                 for tag, value in loss.items():
@@ -347,21 +373,24 @@ class Solver(object):
 
             # Save model checkpoints.
             if (i+1) % self.model_save_step == 0:
-                G_path = os.path.join(self.model_save_dir, '{}-G.ckpt'.format(i+1))
-                D_path = os.path.join(self.model_save_dir, '{}-D.ckpt'.format(i+1))
-                V_path = os.path.join(self.model_save_dir, '{}-V.ckpt'.format(i+1))
+                G_path = os.path.join(
+                    self.model_save_dir, '{}-G.ckpt'.format(i+1))
+                D_path = os.path.join(
+                    self.model_save_dir, '{}-D.ckpt'.format(i+1))
+                V_path = os.path.join(
+                    self.model_save_dir, '{}-V.ckpt'.format(i+1))
                 torch.save(self.G.state_dict(), G_path)
                 torch.save(self.D.state_dict(), D_path)
                 torch.save(self.V.state_dict(), V_path)
-                print('Saved model checkpoints into {}...'.format(self.model_save_dir))
+                print('Saved model checkpoints into {}...'.format(
+                    self.model_save_dir))
 
             # Decay learning rates.
             if (i+1) % self.lr_update_step == 0 and (i+1) > (self.num_iters - self.num_iters_decay):
                 g_lr -= (self.g_lr / float(self.num_iters_decay))
                 d_lr -= (self.d_lr / float(self.num_iters_decay))
                 self.update_lr(g_lr, d_lr)
-                print ('Decayed learning rates, g_lr: {}, d_lr: {}.'.format(g_lr, d_lr))
-
+                print('Decayed learning rates, g_lr: {}, d_lr: {}.'.format(g_lr, d_lr))
 
     def test(self):
         # Load the trained generator.
@@ -374,18 +403,22 @@ class Solver(object):
             # Z-to-target
             edges_logits, nodes_logits = self.G(z)
             # Postprocess with Gumbel softmax
-            (edges_hat, nodes_hat) = self.postprocess((edges_logits, nodes_logits), self.post_method)
+            (edges_hat, nodes_hat) = self.postprocess(
+                (edges_logits, nodes_logits), self.post_method)
             logits_fake, features_fake = self.D(edges_hat, None, nodes_hat)
             g_loss_fake = - torch.mean(logits_fake)
 
             # Fake Reward
-            (edges_hard, nodes_hard) = self.postprocess((edges_logits, nodes_logits), 'hard_gumbel')
-            edges_hard, nodes_hard = torch.max(edges_hard, -1)[1], torch.max(nodes_hard, -1)[1]
+            (edges_hard, nodes_hard) = self.postprocess(
+                (edges_logits, nodes_logits), 'hard_gumbel')
+            edges_hard, nodes_hard = torch.max(
+                edges_hard, -1)[1], torch.max(nodes_hard, -1)[1]
             mols = [self.data.matrices2mol(n_.data.cpu().numpy(), e_.data.cpu().numpy(), strict=True)
                     for e_, n_ in zip(edges_hard, nodes_hard)]
 
             # Log update
-            m0, m1 = all_scores(mols, self.data, norm=True)     # 'mols' is output of Fake Reward
+            # 'mols' is output of Fake Reward
+            m0, m1 = all_scores(mols, self.data, norm=True)
             m0 = {k: np.array(v)[np.nonzero(v)].mean() for k, v in m0.items()}
             m0.update(m1)
             for tag, value in m0.items():

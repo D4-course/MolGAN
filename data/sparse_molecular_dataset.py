@@ -14,10 +14,12 @@ class SparseMolecularDataset():
         with open(filename, 'rb') as f:
             self.__dict__.update(pickle.load(f))
 
-        self.train_idx = np.random.choice(self.train_idx, int(len(self.train_idx) * subset), replace=False)
+        self.train_idx = np.random.choice(self.train_idx, int(
+            len(self.train_idx) * subset), replace=False)
         self.validation_idx = np.random.choice(self.validation_idx, int(len(self.validation_idx) * subset),
                                                replace=False)
-        self.test_idx = np.random.choice(self.test_idx, int(len(self.test_idx) * subset), replace=False)
+        self.test_idx = np.random.choice(self.test_idx, int(
+            len(self.test_idx) * subset), replace=False)
 
         self.train_count = len(self.train_idx)
         self.validation_count = len(self.validation_idx)
@@ -33,16 +35,19 @@ class SparseMolecularDataset():
         self.log('Extracting {}..'.format(filename))
 
         if filename.endswith('.sdf'):
-            self.data = list(filter(lambda x: x is not None, Chem.SDMolSupplier(filename)))
+            self.data = list(filter(lambda x: x is not None,
+                             Chem.SDMolSupplier(filename)))
         elif filename.endswith('.smi'):
-            self.data = [Chem.MolFromSmiles(line) for line in open(filename, 'r').readlines()]
+            self.data = [Chem.MolFromSmiles(
+                line) for line in open(filename, 'r').readlines()]
 
         self.data = list(map(Chem.AddHs, self.data)) if add_h else self.data
         self.data = list(filter(filters, self.data))
         self.data = self.data[:size]
 
         self.log('Extracted {} out of {} molecules {}adding Hydrogen!'.format(len(self.data),
-                                                                              len(Chem.SDMolSupplier(filename)),
+                                                                              len(Chem.SDMolSupplier(
+                                                                                  filename)),
                                                                               '' if add_h else 'not '))
 
         self._generate_encoders_decoders()
@@ -65,7 +70,8 @@ class SparseMolecularDataset():
 
     def _generate_encoders_decoders(self):
         self.log('Creating atoms encoder and decoder..')
-        atom_labels = sorted(set([atom.GetAtomicNum() for mol in self.data for atom in mol.GetAtoms()] + [0]))
+        atom_labels = sorted(
+            set([atom.GetAtomicNum() for mol in self.data for atom in mol.GetAtoms()] + [0]))
         self.atom_encoder_m = {l: i for i, l in enumerate(atom_labels)}
         self.atom_decoder_m = {i: l for i, l in enumerate(atom_labels)}
         self.atom_num_types = len(atom_labels)
@@ -84,7 +90,8 @@ class SparseMolecularDataset():
             self.bond_num_types - 1))
 
         self.log('Creating SMILES encoder and decoder..')
-        smiles_labels = ['E'] + list(set(c for mol in self.data for c in Chem.MolToSmiles(mol)))
+        smiles_labels = [
+            'E'] + list(set(c for mol in self.data for c in Chem.MolToSmiles(mol)))
         self.smiles_encoder_m = {l: i for i, l in enumerate(smiles_labels)}
         self.smiles_decoder_m = {i: l for i, l in enumerate(smiles_labels)}
         self.smiles_num_types = len(smiles_labels)
@@ -146,8 +153,10 @@ class SparseMolecularDataset():
 
         A = np.zeros(shape=(max_length, max_length), dtype=np.int32)
 
-        begin, end = [b.GetBeginAtomIdx() for b in mol.GetBonds()], [b.GetEndAtomIdx() for b in mol.GetBonds()]
-        bond_type = [self.bond_encoder_m[b.GetBondType()] for b in mol.GetBonds()]
+        begin, end = [b.GetBeginAtomIdx() for b in mol.GetBonds()], [
+            b.GetEndAtomIdx() for b in mol.GetBonds()]
+        bond_type = [self.bond_encoder_m[b.GetBondType()]
+                     for b in mol.GetBonds()]
 
         A[begin, end] = bond_type
         A[end, begin] = bond_type
@@ -161,14 +170,15 @@ class SparseMolecularDataset():
         max_length = max_length if max_length is not None else mol.GetNumAtoms()
 
         return np.array([self.atom_encoder_m[atom.GetAtomicNum()] for atom in mol.GetAtoms()] + [0] * (
-                    max_length - mol.GetNumAtoms()), dtype=np.int32)
+            max_length - mol.GetNumAtoms()), dtype=np.int32)
 
     def _genS(self, mol, max_length=None):
 
-        max_length = max_length if max_length is not None else len(Chem.MolToSmiles(mol))
+        max_length = max_length if max_length is not None else len(
+            Chem.MolToSmiles(mol))
 
         return np.array([self.smiles_encoder_m[c] for c in Chem.MolToSmiles(mol)] + [self.smiles_encoder_m['E']] * (
-                    max_length - len(Chem.MolToSmiles(mol))), dtype=np.int32)
+            max_length - len(Chem.MolToSmiles(mol))), dtype=np.int32)
 
     def _genF(self, mol, max_length=None):
 
@@ -176,7 +186,8 @@ class SparseMolecularDataset():
 
         features = np.array([[*[a.GetDegree() == i for i in range(5)],
                               *[a.GetExplicitValence() == i for i in range(9)],
-                              *[int(a.GetHybridization()) == i for i in range(1, 7)],
+                              *[int(a.GetHybridization()) ==
+                                i for i in range(1, 7)],
                               *[a.GetImplicitValence() == i for i in range(9)],
                               a.GetIsAromatic(),
                               a.GetNoImplicit(),
@@ -196,7 +207,8 @@ class SparseMolecularDataset():
 
         for start, end in zip(*np.nonzero(edge_labels)):
             if start > end:
-                mol.AddBond(int(start), int(end), self.bond_decoder_m[edge_labels[start, end]])
+                mol.AddBond(int(start), int(end),
+                            self.bond_decoder_m[edge_labels[start, end]])
 
         if strict:
             try:
@@ -207,7 +219,8 @@ class SparseMolecularDataset():
         return mol
 
     def seq2mol(self, seq, strict=False):
-        mol = Chem.MolFromSmiles(''.join([self.smiles_decoder_m[e] for e in seq if e != 0]))
+        mol = Chem.MolFromSmiles(
+            ''.join([self.smiles_decoder_m[e] for e in seq if e != 0]))
 
         if strict:
             try:
@@ -281,7 +294,8 @@ class SparseMolecularDataset():
 
     @staticmethod
     def log(msg='', date=True):
-        print(str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')) + ' ' + str(msg) if date else str(msg))
+        print(str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')) +
+              ' ' + str(msg) if date else str(msg))
 
     def __len__(self):
         return self.__len
