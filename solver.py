@@ -1,3 +1,5 @@
+from typing import Union, List, Any, Dict
+
 import numpy as np
 import os
 import time
@@ -15,8 +17,46 @@ from data.sparse_molecular_dataset import SparseMolecularDataset
 
 class Solver(object):
     """Solver for training and testing StarGAN."""
+    logger: object
+    z_dim: object
+    m_dim: int
+    b_dim: int
+    g_conv_dim: object
+    d_conv_dim: object
+    g_repeat_num: object
+    d_repeat_num: object
+    lambda_cls: object
+    lambda_rec: object
+    lambda_gp: object
+    post_method: object
+    metric: str
+    batch_size: object
+    num_iters: object
+    num_iters_decay: object
+    g_lr: object
+    d_lr: object
+    dropout: object
+    n_critic: object
+    beta1: object
+    beta2: object
+    resume_iters: object
+    test_iters: object
+    log_dir: object
+    sample_dir: object
+    model_save_dir: object
+    result_dir: object
+    log_step: object
+    sample_step: object
+    model_save_step: object
+    lr_update_step: object
+    use_tensorboard: object
+    g_optimizer: object
+    d_optimizer: object
+    G: Generator
+    D: Discriminator
+    V: Discriminator
 
-    def __init__(self, config):
+    def __init__(self, config: object) -> object:
         """Initialize configurations.
         @param config:
         """
@@ -76,7 +116,7 @@ class Solver(object):
         if self.use_tensorboard:
             self.build_tensorboard()
 
-    def build_model(self):
+    def build_model(self) -> object:
         """Create a generator and a discriminator."""
         self.G = Generator(
             self.g_conv_dim,
@@ -104,26 +144,26 @@ class Solver(object):
         self.D.to(self.device)
         self.V.to(self.device)
 
-    def print_network(self, model, name):
+    def print_network(self, model: object, name: object) -> object:
         """Print out the network information.
         @param model:
         @param name:
         """
-        num_params = 0
+        num_params: int = 0
         for p in model.parameters():
             num_params += p.numel()
         print(model)
         print(name)
         print("The number of parameters: {}".format(num_params))
 
-    def restore_model(self, resume_iters):
+    def restore_model(self, resume_iters: object) -> object:
         """Restore the trained generator and discriminator.
         @param resume_iters:
         """
         print("Loading the trained models from step {}...".format(resume_iters))
-        G_path = os.path.join(self.model_save_dir, "{}-G.ckpt".format(resume_iters))
-        D_path = os.path.join(self.model_save_dir, "{}-D.ckpt".format(resume_iters))
-        V_path = os.path.join(self.model_save_dir, "{}-V.ckpt".format(resume_iters))
+        G_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-G.ckpt".format(resume_iters))
+        D_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-D.ckpt".format(resume_iters))
+        V_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-V.ckpt".format(resume_iters))
         self.G.load_state_dict(
             torch.load(G_path, map_location=lambda storage, loc: storage)
         )
@@ -140,37 +180,38 @@ class Solver(object):
 
         self.logger = Logger(self.log_dir)
 
-    def update_lr(self, g_lr, d_lr):
+    def update_lr(self, g_lr: object, d_lr: object) -> object:
         """Decay learning rates of the generator and discriminator.
         @param g_lr:
         @param d_lr:
         """
+        param_group: object
         for param_group in self.g_optimizer.param_groups:
             param_group["lr"] = g_lr
         for param_group in self.d_optimizer.param_groups:
             param_group["lr"] = d_lr
 
-    def reset_grad(self):
+    def reset_grad(self) -> object:
         """Reset the gradient buffers."""
         self.g_optimizer.zero_grad()
         self.d_optimizer.zero_grad()
 
-    def denorm(self, x):
+    def denorm(self, x: object) -> object:
         """Convert the range from [-1, 1] to [0, 1].
         @param x:
         @return:
         """
-        out = (x + 1) / 2
+        out: float = (x + 1) / 2
         return out.clamp_(0, 1)
 
-    def gradient_penalty(self, y, x):
+    def gradient_penalty(self, y: object, x: object) -> object:
         """Compute gradient penalty: (L2_norm(dy/dx) - 1)**2.
         @param y:
         @param x:
         @return:
         """
-        weight = torch.ones(y.size()).to(self.device)
-        dydx = torch.autograd.grad(
+        weight: object = torch.ones(y.size()).to(self.device)
+        dydx: object = torch.autograd.grad(
             outputs=y,
             inputs=x,
             grad_outputs=weight,
@@ -180,20 +221,20 @@ class Solver(object):
         )[0]
 
         dydx = dydx.view(dydx.size(0), -1)
-        dydx_l2norm = torch.sqrt(torch.sum(dydx**2, dim=1))
+        dydx_l2norm: object = torch.sqrt(torch.sum(dydx**2, dim=1))
         return torch.mean((dydx_l2norm - 1) ** 2)
 
-    def label2onehot(self, labels, dim):
+    def label2onehot(self, labels: object, dim: object) -> object:
         """Convert label indices to one-hot vectors.
         @param labels:
         @param dim:
         @return:
         """
-        out = torch.zeros(list(labels.size()) + [dim]).to(self.device)
+        out: object = torch.zeros(list(labels.size()) + [dim]).to(self.device)
         out.scatter_(len(out.size()) - 1, labels.unsqueeze(-1), 1.0)
         return out
 
-    def classification_loss(self, logit, target, dataset="CelebA"):
+    def classification_loss(self, logit: object, target: object, dataset: object = "CelebA") -> object:
         """Compute binary or softmax cross entropy loss.
         @param logit:
         @param target:
@@ -207,28 +248,36 @@ class Solver(object):
         elif dataset == "RaFD":
             return F.cross_entropy(logit, target)
 
-    def sample_z(self, batch_size):
+    def sample_z(self, batch_size: object) -> object:
         """
         @param batch_size:
         @return:
         """
         return np.random.normal(0, 1, size=(batch_size, self.z_dim))
 
-    def postprocess(self, inputs, method, temperature=1.0):
+    def postprocess(self, inputs: object, method: object, temperature: object = 1.0) -> object:
         """
         @param inputs:
         @param method:
         @param temperature:
         @return:
         """
-        def listify(x):
+        def listify(x: object) -> object:
+            """
+            @param x: 
+            @return: 
+            """
             return x if type(x) == list or type(x) == tuple else [x]
 
-        def delistify(x):
+        def delistify(x: object) -> object:
+            """
+            @param x: 
+            @return: 
+            """
             return x if len(x) > 1 else x[0]
 
         if method == "soft_gumbel":
-            softmax = [
+            softmax: List[Any] = [
                 F.gumbel_softmax(
                     e_logits.contiguous().view(-1, e_logits.size(-1)) / temperature,
                     hard=False,
@@ -250,12 +299,13 @@ class Solver(object):
 
         return [delistify(e) for e in (softmax)]
 
-    def reward(self, mols):
+    def reward(self, mols: object) -> object:
         """
         @param mols:
         @return:
         """
-        rr = 1.0
+        rr: float = 1.0
+        m: str
         for m in ("logp,sas,qed,unique" if self.metric == "all" else self.metric).split(
             ","
         ):
@@ -289,25 +339,26 @@ class Solver(object):
 
         return rr.reshape(-1, 1)
 
-    def train(self):
+    def train(self) -> object:
         """ Trains the model """
         # Learning rate cache for decaying.
-        g_lr = self.g_lr
-        d_lr = self.d_lr
+        g_lr: object = self.g_lr
+        d_lr: object = self.d_lr
 
         # Start training from scratch or resume training.
-        start_iters = 0
+        start_iters: int = 0
         if self.resume_iters:
             start_iters = self.resume_iters
             self.restore_model(self.resume_iters)
 
         # Start training.
         print("Start training...")
-        start_time = time.time()
+        start_time: float = time.time()
+        i: int
         for i in range(start_iters, self.num_iters):
             if (i + 1) % self.log_step == 0:
                 mols, _, _, a, x, _, _, _, _ = self.data.next_validation_batch()
-                z = self.sample_z(a.shape[0])
+                z: object = self.sample_z(a.shape[0])
                 print("[Valid]", "")
             else:
                 mols, _, _, a, x, _, _, _, _ = self.data.next_train_batch(
@@ -322,8 +373,8 @@ class Solver(object):
             # Adjacency.
             a = torch.from_numpy(a).to(self.device).long()
             x = torch.from_numpy(x).to(self.device).long()  # Nodes.
-            a_tensor = self.label2onehot(a, self.b_dim)
-            x_tensor = self.label2onehot(x, self.m_dim)
+            a_tensor: object = self.label2onehot(a, self.b_dim)
+            x_tensor: object = self.label2onehot(x, self.m_dim)
             z = torch.from_numpy(z).to(self.device).float()
 
             # =================================================================================== #
@@ -331,37 +382,47 @@ class Solver(object):
             # =================================================================================== #
 
             # Compute loss with real images.
+            logits_real: object
+            features_real: object
             logits_real, features_real = self.D(a_tensor, None, x_tensor)
-            d_loss_real = -torch.mean(logits_real)
+            d_loss_real: object = -torch.mean(logits_real)
 
             # Compute loss with fake images.
+            edges_logits: object
+            nodes_logits: object
             edges_logits, nodes_logits = self.G(z)
             # Postprocess with Gumbel softmax
+            edges_hat: object
+            nodes_hat: object
             (edges_hat, nodes_hat) = self.postprocess(
                 (edges_logits, nodes_logits), self.post_method
             )
+            logits_fake: object
+            features_fake: object
             logits_fake, features_fake = self.D(edges_hat, None, nodes_hat)
-            d_loss_fake = torch.mean(logits_fake)
+            d_loss_fake: object = torch.mean(logits_fake)
 
             # Compute loss for gradient penalty.
-            eps = torch.rand(logits_real.size(0), 1, 1, 1).to(self.device)
-            x_int0 = (eps * a_tensor + (1.0 - eps) * edges_hat).requires_grad_(True)
-            x_int1 = (
+            eps: object = torch.rand(logits_real.size(0), 1, 1, 1).to(self.device)
+            x_int0: object = (eps * a_tensor + (1.0 - eps) * edges_hat).requires_grad_(True)
+            x_int1: object = (
                 eps.squeeze(-1) * x_tensor + (1.0 - eps.squeeze(-1)) * nodes_hat
             ).requires_grad_(True)
+            grad0: object
+            grad1: object
             grad0, grad1 = self.D(x_int0, None, x_int1)
-            d_loss_gp = self.gradient_penalty(grad0, x_int0) + self.gradient_penalty(
+            d_loss_gp: object = self.gradient_penalty(grad0, x_int0) + self.gradient_penalty(
                 grad1, x_int1
             )
 
             # Backward and optimize.
-            d_loss = d_loss_fake + d_loss_real + self.lambda_gp * d_loss_gp
+            d_loss: object = d_loss_fake + d_loss_real + self.lambda_gp * d_loss_gp
             self.reset_grad()
             d_loss.backward()
             self.d_optimizer.step()
 
             # Logging.
-            loss = {}
+            loss: Dict[str, Any] = {}
             loss["D/loss_real"] = d_loss_real.item()
             loss["D/loss_fake"] = d_loss_fake.item()
             loss["D/loss_gp"] = d_loss_gp.item()
@@ -432,6 +493,8 @@ class Solver(object):
 
                 # Log update
                 # 'mols' is output of Fake Reward
+                m0: dict
+                m1: Dict[str, Union[int, float]]
                 m0, m1 = all_scores(mols, self.data, norm=True)
                 m0 = {k: np.array(v)[np.nonzero(v)].mean() for k, v in m0.items()}
                 m0.update(m1)
@@ -446,9 +509,9 @@ class Solver(object):
 
             # Save model checkpoints.
             if (i + 1) % self.model_save_step == 0:
-                G_path = os.path.join(self.model_save_dir, "{}-G.ckpt".format(i + 1))
-                D_path = os.path.join(self.model_save_dir, "{}-D.ckpt".format(i + 1))
-                V_path = os.path.join(self.model_save_dir, "{}-V.ckpt".format(i + 1))
+                G_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-G.ckpt".format(i + 1))
+                D_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-D.ckpt".format(i + 1))
+                V_path: Union[bytes, str] = os.path.join(self.model_save_dir, "{}-V.ckpt".format(i + 1))
                 torch.save(self.G.state_dict(), G_path)
                 torch.save(self.D.state_dict(), D_path)
                 torch.save(self.V.state_dict(), V_path)

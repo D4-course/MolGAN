@@ -1,18 +1,20 @@
 import os
 import argparse
+from argparse import ArgumentParser
+
 from solver import Solver
 from data_loader import get_loader
 from torch.backends import cudnn
 
 
-def str2bool(v):
+def str2bool(v: object) -> object:
     """
     @rtype: object
     """
     return v.lower() in ("true")
 
 
-def main(config):
+def main(config: object) -> object:
     """
     @param config:
     """
@@ -39,7 +41,7 @@ def main(config):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser: ArgumentParser = argparse.ArgumentParser()
 
     # Model configuration.
     parser.add_argument(

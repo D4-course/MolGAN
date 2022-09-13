@@ -1,3 +1,5 @@
+from typing import Union, Any, List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,8 +9,9 @@ from layers import GraphConvolution, GraphAggregation
 
 class ResidualBlock(nn.Module):
     """Residual Block with instance normalization."""
+    main: object
 
-    def __init__(self, dim_in, dim_out):
+    def __init__(self, dim_in: object, dim_out: object) -> object:
         """
         @param dim_in:
         @param dim_out:
@@ -22,7 +25,7 @@ class ResidualBlock(nn.Module):
             nn.InstanceNorm2d(dim_out, affine=True, track_running_stats=True),
         )
 
-    def forward(self, x):
+    def forward(self, x: object) -> object:
         """
         @param x:
         @return:
@@ -32,8 +35,14 @@ class ResidualBlock(nn.Module):
 
 class Generator(nn.Module):
     """Generator network."""
+    vertexes: object
+    edges: object
+    nodes: object
+    edges_layer: object
+    nodes_layer: object
+    dropoout: object
 
-    def __init__(self, conv_dims, z_dim, vertexes, edges, nodes, dropout):
+    def __init__(self, conv_dims: object, z_dim: object, vertexes: object, edges: object, nodes: object, dropout: object) -> object:
         """
         @param conv_dims:
         @param z_dim:
@@ -48,7 +57,7 @@ class Generator(nn.Module):
         self.edges = edges
         self.nodes = nodes
 
-        layers = []
+        layers: List[Any] = []
         for c0, c1 in zip([z_dim] + conv_dims[:-1], conv_dims):
             layers.append(nn.Linear(c0, c1))
             layers.append(nn.Tanh())
@@ -59,13 +68,13 @@ class Generator(nn.Module):
         self.nodes_layer = nn.Linear(conv_dims[-1], vertexes * nodes)
         self.dropoout = nn.Dropout(p=dropout)
 
-    def forward(self, x):
+    def forward(self, x: object) -> object:
         """
         @param x:
         @return:
         """
-        output = self.layers(x)
-        edges_logits = self.edges_layer(output).view(
+        output: object = self.layers(x)
+        edges_logits: object = self.edges_layer(output).view(
             -1, self.edges, self.vertexes, self.vertexes
         )
         edges_logits = (edges_logits + edges_logits.permute(0, 1, 3, 2)) / 2
@@ -79,8 +88,12 @@ class Generator(nn.Module):
 
 class Discriminator(nn.Module):
     """Discriminator network with PatchGAN."""
+    gcn_layer: GraphConvolution
+    agg_layer: GraphAggregation
+    linear_layer: object
+    output_layer: object
 
-    def __init__(self, conv_dim, m_dim, b_dim, dropout):
+    def __init__(self, conv_dim: object, m_dim: object, b_dim: object, dropout: object) -> object:
         """
         @param conv_dim:
         @param m_dim:
@@ -95,7 +108,7 @@ class Discriminator(nn.Module):
         self.agg_layer = GraphAggregation(graph_conv_dim[-1], aux_dim, b_dim, dropout)
 
         # multi dense layer
-        layers = []
+        layers: List[Any] = []
         for c0, c1 in zip([aux_dim] + linear_dim[:-1], linear_dim):
             layers.append(nn.Linear(c0, c1))
             layers.append(nn.Dropout(dropout))
@@ -103,7 +116,7 @@ class Discriminator(nn.Module):
 
         self.output_layer = nn.Linear(linear_dim[-1], 1)
 
-    def forward(self, adj, hidden, node, activatation=None):
+    def forward(self, adj: object, hidden: object, node: object, activatation: object = None) -> object:
         """
         @param adj:
         @param hidden:
@@ -112,8 +125,8 @@ class Discriminator(nn.Module):
         @return:
         """
         adj = adj[:, :, :, 1:].permute(0, 3, 1, 2)
-        annotations = torch.cat((hidden, node), -1) if hidden is not None else node
-        h = self.gcn_layer(annotations, adj)
+        annotations: Union[object, Any] = torch.cat((hidden, node), -1) if hidden is not None else node
+        h: object = self.gcn_layer(annotations, adj)
         annotations = torch.cat(
             (h, hidden, node) if hidden is not None else (h, node), -1
         )
@@ -123,7 +136,7 @@ class Discriminator(nn.Module):
         # Need to implemente batch discriminator #
         ##########################################
 
-        output = self.output_layer(h)
+        output: object = self.output_layer(h)
         output = activatation(output) if activatation is not None else output
 
         return output, h
