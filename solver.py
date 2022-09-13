@@ -17,7 +17,9 @@ class Solver(object):
     """Solver for training and testing StarGAN."""
 
     def __init__(self, config):
-        """Initialize configurations."""
+        """Initialize configurations.
+        @param config:
+        """
 
         # Data loader.
         self.data = SparseMolecularDataset()
@@ -103,7 +105,10 @@ class Solver(object):
         self.V.to(self.device)
 
     def print_network(self, model, name):
-        """Print out the network information."""
+        """Print out the network information.
+        @param model:
+        @param name:
+        """
         num_params = 0
         for p in model.parameters():
             num_params += p.numel()
@@ -112,7 +117,9 @@ class Solver(object):
         print("The number of parameters: {}".format(num_params))
 
     def restore_model(self, resume_iters):
-        """Restore the trained generator and discriminator."""
+        """Restore the trained generator and discriminator.
+        @param resume_iters:
+        """
         print("Loading the trained models from step {}...".format(resume_iters))
         G_path = os.path.join(self.model_save_dir, "{}-G.ckpt".format(resume_iters))
         D_path = os.path.join(self.model_save_dir, "{}-D.ckpt".format(resume_iters))
@@ -134,7 +141,10 @@ class Solver(object):
         self.logger = Logger(self.log_dir)
 
     def update_lr(self, g_lr, d_lr):
-        """Decay learning rates of the generator and discriminator."""
+        """Decay learning rates of the generator and discriminator.
+        @param g_lr:
+        @param d_lr:
+        """
         for param_group in self.g_optimizer.param_groups:
             param_group["lr"] = g_lr
         for param_group in self.d_optimizer.param_groups:
@@ -146,12 +156,19 @@ class Solver(object):
         self.d_optimizer.zero_grad()
 
     def denorm(self, x):
-        """Convert the range from [-1, 1] to [0, 1]."""
+        """Convert the range from [-1, 1] to [0, 1].
+        @param x:
+        @return:
+        """
         out = (x + 1) / 2
         return out.clamp_(0, 1)
 
     def gradient_penalty(self, y, x):
-        """Compute gradient penalty: (L2_norm(dy/dx) - 1)**2."""
+        """Compute gradient penalty: (L2_norm(dy/dx) - 1)**2.
+        @param y:
+        @param x:
+        @return:
+        """
         weight = torch.ones(y.size()).to(self.device)
         dydx = torch.autograd.grad(
             outputs=y,
@@ -167,13 +184,22 @@ class Solver(object):
         return torch.mean((dydx_l2norm - 1) ** 2)
 
     def label2onehot(self, labels, dim):
-        """Convert label indices to one-hot vectors."""
+        """Convert label indices to one-hot vectors.
+        @param labels:
+        @param dim:
+        @return:
+        """
         out = torch.zeros(list(labels.size()) + [dim]).to(self.device)
         out.scatter_(len(out.size()) - 1, labels.unsqueeze(-1), 1.0)
         return out
 
     def classification_loss(self, logit, target, dataset="CelebA"):
-        """Compute binary or softmax cross entropy loss."""
+        """Compute binary or softmax cross entropy loss.
+        @param logit:
+        @param target:
+        @param dataset:
+        @return:
+        """
         if dataset == "CelebA":
             return F.binary_cross_entropy_with_logits(
                 logit, target, size_average=False
@@ -182,9 +208,19 @@ class Solver(object):
             return F.cross_entropy(logit, target)
 
     def sample_z(self, batch_size):
+        """
+        @param batch_size:
+        @return:
+        """
         return np.random.normal(0, 1, size=(batch_size, self.z_dim))
 
     def postprocess(self, inputs, method, temperature=1.0):
+        """
+        @param inputs:
+        @param method:
+        @param temperature:
+        @return:
+        """
         def listify(x):
             return x if type(x) == list or type(x) == tuple else [x]
 
@@ -215,6 +251,10 @@ class Solver(object):
         return [delistify(e) for e in (softmax)]
 
     def reward(self, mols):
+        """
+        @param mols:
+        @return:
+        """
         rr = 1.0
         for m in ("logp,sas,qed,unique" if self.metric == "all" else self.metric).split(
             ","
@@ -250,7 +290,7 @@ class Solver(object):
         return rr.reshape(-1, 1)
 
     def train(self):
-
+        """ Trains the model """
         # Learning rate cache for decaying.
         g_lr = self.g_lr
         d_lr = self.d_lr
@@ -424,6 +464,7 @@ class Solver(object):
                 print("Decayed learning rates, g_lr: {}, d_lr: {}.".format(g_lr, d_lr))
 
     def test(self):
+        """ For testing model """
         # Load the trained generator.
         self.restore_model(self.test_iters)
 

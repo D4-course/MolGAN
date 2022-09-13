@@ -6,10 +6,16 @@ from torch.backends import cudnn
 
 
 def str2bool(v):
+    """
+    @rtype: object
+    """
     return v.lower() in ("true")
 
 
 def main(config):
+    """
+    @param config:
+    """
     # For fast training.
     cudnn.benchmark = True
 

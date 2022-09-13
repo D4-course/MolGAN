@@ -24,6 +24,10 @@ SA_model = {
 class MolecularMetrics(object):
     @staticmethod
     def _avoid_sanitization_error(op):
+        """
+        @param op:
+        @return:
+        """
         try:
             return op()
         except ValueError:
@@ -31,35 +35,66 @@ class MolecularMetrics(object):
 
     @staticmethod
     def remap(x, x_min, x_max):
+        """
+        @param x:
+        @param x_min:
+        @param x_max:
+        @return:
+        """
         return (x - x_min) / (x_max - x_min)
 
     @staticmethod
     def valid_lambda(x):
+        """
+        @param x:
+        @return:
+        """
         return x is not None and Chem.MolToSmiles(x) != ""
 
     @staticmethod
     def valid_lambda_special(x):
+        """
+        @param x:
+        @return:
+        """
         s = Chem.MolToSmiles(x) if x is not None else ""
         return x is not None and "*" not in s and "." not in s and s != ""
 
     @staticmethod
     def valid_scores(mols):
+        """
+        @param mols:
+        @return:
+        """
         return np.array(
             list(map(MolecularMetrics.valid_lambda_special, mols)), dtype=np.float32
         )
 
     @staticmethod
     def valid_filter(mols):
+        """
+        @param mols:
+        @return:
+        """
         return list(filter(MolecularMetrics.valid_lambda, mols))
 
     @staticmethod
     def valid_total_score(mols):
+        """
+        @param mols:
+        @return:
+        """
         return np.array(
             list(map(MolecularMetrics.valid_lambda, mols)), dtype=np.float32
         ).mean()
 
     @staticmethod
     def novel_scores(mols, data):
+        """
+        @param mols:
+        @param data:
+        @return:
+        """
         return np.array(
             list(
                 map(
@@ -72,6 +107,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def novel_filter(mols, data):
+        """
+        @param mols:
+        @param data:
+        @return:
+        """
         return list(
             filter(
                 lambda x: MolecularMetrics.valid_lambda(x)
@@ -82,12 +122,21 @@ class MolecularMetrics(object):
 
     @staticmethod
     def novel_total_score(mols, data):
+        """
+        @param mols:
+        @param data:
+        @return:
+        """
         return MolecularMetrics.novel_scores(
             MolecularMetrics.valid_filter(mols), data
         ).mean()
 
     @staticmethod
     def unique_scores(mols):
+        """
+        @param mols:
+        @return:
+        """
         smiles = list(
             map(
                 lambda x: Chem.MolToSmiles(x)
@@ -108,6 +157,10 @@ class MolecularMetrics(object):
 
     @staticmethod
     def unique_total_score(mols):
+        """
+        @param mols:
+        @return:
+        """
         v = MolecularMetrics.valid_filter(mols)
         s = set(map(lambda x: Chem.MolToSmiles(x), v))
         return 0 if len(v) == 0 else len(s) / len(v)
@@ -140,7 +193,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def natural_product_scores(mols, norm=False):
-
+        """
+        @param mols:
+        @param norm:
+        @return:
+        """
         # calculating the score
         scores = [
             sum(
@@ -178,6 +235,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def quantitative_estimation_druglikeness_scores(mols, norm=False):
+        """
+        @param mols:
+        @param norm:
+        @return:
+        """
         return np.array(
             list(
                 map(
@@ -194,6 +256,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def water_octanol_partition_coefficient_scores(mols, norm=False):
+        """
+        @param mols:
+        @param norm:
+        @return:
+        """
         scores = [
             MolecularMetrics._avoid_sanitization_error(lambda: Crippen.MolLogP(mol))
             if mol is not None
@@ -213,6 +280,10 @@ class MolecularMetrics(object):
 
     @staticmethod
     def _compute_SAS(mol):
+        """
+        @param mol:
+        @return:
+        """
         fp = Chem.rdMolDescriptors.GetMorganFingerprint(mol, 2)
         fps = fp.GetNonzeroElements()
         score1 = 0.0
@@ -282,6 +353,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def synthetic_accessibility_score_scores(mols, norm=False):
+        """
+        @param mols:
+        @param norm:
+        @return:
+        """
         scores = [
             MolecularMetrics._compute_SAS(mol) if mol is not None else None
             for mol in mols
@@ -297,6 +373,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def diversity_scores(mols, data):
+        """
+        @param mols:
+        @param data:
+        @return:
+        """
         rand_mols = np.random.choice(data.data, 100)
         fps = [
             Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, 4, nBits=2048)
@@ -319,6 +400,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def __compute_diversity(mol, fps):
+        """
+        @param mol:
+        @param fps:
+        @return:
+        """
         ref_fps = Chem.rdMolDescriptors.GetMorganFingerprintAsBitVect(
             mol, 4, nBits=2048
         )
@@ -328,7 +414,11 @@ class MolecularMetrics(object):
 
     @staticmethod
     def drugcandidate_scores(mols, data):
-
+        """
+        @param mols:
+        @param data:
+        @return:
+        """
         scores = (
             MolecularMetrics.constant_bump(
                 MolecularMetrics.water_octanol_partition_coefficient_scores(
@@ -346,6 +436,13 @@ class MolecularMetrics(object):
 
     @staticmethod
     def constant_bump(x, x_low, x_high, decay=0.025):
+        """
+        @param x:
+        @param x_low:
+        @param x_high:
+        @param decay:
+        @return:
+        """
         return np.select(
             condlist=[x <= x_low, x >= x_high],
             choicelist=[
@@ -357,6 +454,11 @@ class MolecularMetrics(object):
 
 
 def mols2grid_image(mols, molsPerRow):
+    """
+    @param mols:
+    @param molsPerRow:
+    @return:
+    """
     mols = [e if e is not None else Chem.RWMol() for e in mols]
 
     for mol in mols:
@@ -366,6 +468,12 @@ def mols2grid_image(mols, molsPerRow):
 
 
 def classification_report(data, model, session, sample=False):
+    """
+    @param data:
+    @param model:
+    @param session:
+    @param sample:
+    """
     _, _, _, a, x, _, f, _, _ = data.next_validation_batch()
 
     n, e = session.run(
@@ -420,6 +528,14 @@ def classification_report(data, model, session, sample=False):
 
 
 def reconstructions(data, model, session, batch_dim=10, sample=False):
+    """
+    @param data:
+    @param model:
+    @param session:
+    @param batch_dim:
+    @param sample:
+    @return:
+    """
     m0, _, _, a, x, _, f, _, _ = data.next_train_batch(batch_dim)
 
     n, e = session.run(
@@ -449,6 +565,14 @@ def reconstructions(data, model, session, batch_dim=10, sample=False):
 
 
 def samples(data, model, session, embeddings, sample=False):
+    """
+    @param data:
+    @param model:
+    @param session:
+    @param embeddings:
+    @param sample:
+    @return:
+    """
     n, e = session.run(
         [model.nodes_gumbel_argmax, model.edges_gumbel_argmax]
         if sample
@@ -463,6 +587,13 @@ def samples(data, model, session, embeddings, sample=False):
 
 
 def all_scores(mols, data, norm=False, reconstruction=False):
+    """
+    @param mols:
+    @param data:
+    @param norm:
+    @param reconstruction:
+    @return:
+    """
     m0 = {
         k: list(filter(lambda e: e is not None, v))
         for k, v in {

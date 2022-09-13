@@ -9,7 +9,10 @@ from datetime import datetime
 
 class SparseMolecularDataset:
     def load(self, filename, subset=1):
-
+        """
+        @param filename:
+        @param subset:
+        """
         with open(filename, "rb") as f:
             self.__dict__.update(pickle.load(f))
 
@@ -30,6 +33,9 @@ class SparseMolecularDataset:
         self.__len = self.train_count + self.validation_count + self.test_count
 
     def save(self, filename):
+        """
+        @param filename:
+        """
         with open(filename, "wb") as f:
             pickle.dump(self.__dict__, f)
 
@@ -42,6 +48,14 @@ class SparseMolecularDataset:
         validation=0.1,
         test=0.1,
     ):
+        """
+        @param filename:
+        @param add_h:
+        @param filters:
+        @param size:
+        @param validation:
+        @param test:
+        """
         self.log("Extracting {}..".format(filename))
 
         if filename.endswith(".sdf"):
@@ -182,7 +196,12 @@ class SparseMolecularDataset:
         self.__len = len(self.data)
 
     def _genA(self, mol, connected=True, max_length=None):
-
+        """
+        @param mol:
+        @param connected:
+        @param max_length:
+        @return:
+        """
         max_length = max_length if max_length is not None else mol.GetNumAtoms()
 
         A = np.zeros(shape=(max_length, max_length), dtype=np.int32)
@@ -200,7 +219,11 @@ class SparseMolecularDataset:
         return A if connected and (degree > 0).all() else None
 
     def _genX(self, mol, max_length=None):
-
+        """
+        @param mol:
+        @param max_length:
+        @return:
+        """
         max_length = max_length if max_length is not None else mol.GetNumAtoms()
 
         return np.array(
@@ -210,7 +233,11 @@ class SparseMolecularDataset:
         )
 
     def _genS(self, mol, max_length=None):
-
+        """
+        @param mol:
+        @param max_length:
+        @return:
+        """
         max_length = (
             max_length if max_length is not None else len(Chem.MolToSmiles(mol))
         )
@@ -222,7 +249,11 @@ class SparseMolecularDataset:
         )
 
     def _genF(self, mol, max_length=None):
-
+        """
+        @param mol:
+        @param max_length:
+        @return:
+        """
         max_length = max_length if max_length is not None else mol.GetNumAtoms()
 
         features = np.array(
@@ -250,6 +281,12 @@ class SparseMolecularDataset:
         )
 
     def matrices2mol(self, node_labels, edge_labels, strict=False):
+        """
+        @param node_labels:
+        @param edge_labels:
+        @param strict:
+        @return:
+        """
         mol = Chem.RWMol()
 
         for node_label in node_labels:
@@ -270,6 +307,11 @@ class SparseMolecularDataset:
         return mol
 
     def seq2mol(self, seq, strict=False):
+        """
+        @param seq:
+        @param strict:
+        @return:
+        """
         mol = Chem.MolFromSmiles(
             "".join([self.smiles_decoder_m[e] for e in seq if e != 0])
         )
@@ -283,7 +325,10 @@ class SparseMolecularDataset:
         return mol
 
     def _generate_train_validation_test(self, validation, test):
-
+        """
+        @param validation:
+        @param test:
+        """
         self.log("Creating train, validation and test sets..")
 
         validation = int(validation * len(self))
@@ -310,6 +355,13 @@ class SparseMolecularDataset:
         )
 
     def _next_batch(self, counter, count, idx, batch_size):
+        """
+        @param counter:
+        @param count:
+        @param idx:
+        @param batch_size:
+        @return:
+        """
         if batch_size is not None:
             if counter + batch_size >= count:
                 counter = 0
@@ -350,6 +402,10 @@ class SparseMolecularDataset:
         return [counter] + output
 
     def next_train_batch(self, batch_size=None):
+        """
+        @param batch_size:
+        @return:
+        """
         out = self._next_batch(
             counter=self.train_counter,
             count=self.train_count,
@@ -361,6 +417,10 @@ class SparseMolecularDataset:
         return out[1:]
 
     def next_validation_batch(self, batch_size=None):
+        """
+        @param batch_size:
+        @return:
+        """
         out = self._next_batch(
             counter=self.validation_counter,
             count=self.validation_count,
@@ -372,6 +432,10 @@ class SparseMolecularDataset:
         return out[1:]
 
     def next_test_batch(self, batch_size=None):
+        """
+        @param batch_size:
+        @return:
+        """
         out = self._next_batch(
             counter=self.test_counter,
             count=self.test_count,
@@ -384,6 +448,10 @@ class SparseMolecularDataset:
 
     @staticmethod
     def log(msg="", date=True):
+        """
+        @param msg:
+        @param date:
+        """
         print(
             str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + " " + str(msg)
             if date

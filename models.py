@@ -9,6 +9,10 @@ class ResidualBlock(nn.Module):
     """Residual Block with instance normalization."""
 
     def __init__(self, dim_in, dim_out):
+        """
+        @param dim_in:
+        @param dim_out:
+        """
         super(ResidualBlock, self).__init__()
         self.main = nn.Sequential(
             nn.Conv2d(dim_in, dim_out, kernel_size=3, stride=1, padding=1, bias=False),
@@ -19,6 +23,10 @@ class ResidualBlock(nn.Module):
         )
 
     def forward(self, x):
+        """
+        @param x:
+        @return:
+        """
         return x + self.main(x)
 
 
@@ -26,6 +34,14 @@ class Generator(nn.Module):
     """Generator network."""
 
     def __init__(self, conv_dims, z_dim, vertexes, edges, nodes, dropout):
+        """
+        @param conv_dims:
+        @param z_dim:
+        @param vertexes:
+        @param edges:
+        @param nodes:
+        @param dropout:
+        """
         super(Generator, self).__init__()
 
         self.vertexes = vertexes
@@ -44,6 +60,10 @@ class Generator(nn.Module):
         self.dropoout = nn.Dropout(p=dropout)
 
     def forward(self, x):
+        """
+        @param x:
+        @return:
+        """
         output = self.layers(x)
         edges_logits = self.edges_layer(output).view(
             -1, self.edges, self.vertexes, self.vertexes
@@ -61,6 +81,12 @@ class Discriminator(nn.Module):
     """Discriminator network with PatchGAN."""
 
     def __init__(self, conv_dim, m_dim, b_dim, dropout):
+        """
+        @param conv_dim:
+        @param m_dim:
+        @param b_dim:
+        @param dropout:
+        """
         super(Discriminator, self).__init__()
 
         graph_conv_dim, aux_dim, linear_dim = conv_dim
@@ -78,6 +104,13 @@ class Discriminator(nn.Module):
         self.output_layer = nn.Linear(linear_dim[-1], 1)
 
     def forward(self, adj, hidden, node, activatation=None):
+        """
+        @param adj:
+        @param hidden:
+        @param node:
+        @param activatation:
+        @return:
+        """
         adj = adj[:, :, :, 1:].permute(0, 3, 1, 2)
         annotations = torch.cat((hidden, node), -1) if hidden is not None else node
         h = self.gcn_layer(annotations, adj)

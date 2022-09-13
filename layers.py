@@ -7,6 +7,12 @@ from torch.nn.modules.module import Module
 
 class GraphConvolution(Module):
     def __init__(self, in_features, out_feature_list, b_dim, dropout):
+        """
+        @param in_features:
+        @param out_feature_list:
+        @param b_dim:
+        @param dropout:
+        """
         super(GraphConvolution, self).__init__()
         self.in_features = in_features
         self.out_feature_list = out_feature_list
@@ -17,6 +23,12 @@ class GraphConvolution(Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, adj, activation=None):
+        """
+        @param input:
+        @param adj:
+        @param activation:
+        @return:
+        """
         # input : 16x9x9
         # adj : 16x4x9x9
 
@@ -37,6 +49,12 @@ class GraphConvolution(Module):
 
 class GraphAggregation(Module):
     def __init__(self, in_features, out_features, b_dim, dropout):
+        """
+        @param in_features:
+        @param out_features:
+        @param b_dim:
+        @param dropout:
+        """
         super(GraphAggregation, self).__init__()
         self.sigmoid_linear = nn.Sequential(
             nn.Linear(in_features + b_dim, out_features), nn.Sigmoid()
@@ -47,6 +65,11 @@ class GraphAggregation(Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, activation):
+        """
+        @param input:
+        @param activation:
+        @return:
+        """
         i = self.sigmoid_linear(input)
         j = self.tanh_linear(input)
         output = torch.sum(torch.mul(i, j), 1)

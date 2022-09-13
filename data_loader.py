@@ -13,12 +13,17 @@ class SparseMoleCular(data.Dataset):
     """Dataset class for the CelebA dataset."""
 
     def __init__(self, data_dir):
-        """Initialize and preprocess the CelebA dataset."""
+        """Initialize and preprocess the CelebA dataset.
+        @param data_dir:
+        """
         self.data = SparseMolecularDataset()
         self.data.load(data_dir)
 
     def __getitem__(self, index):
-        """Return one image and its corresponding attribute label."""
+        """Return one image and its corresponding attribute label.
+        @param index:
+        @return:
+        """
 
         return (
             index,
@@ -34,12 +39,20 @@ class SparseMoleCular(data.Dataset):
         )
 
     def __len__(self):
-        """Return the number of images."""
+        """Return the number of images.
+        @return:
+        """
         return len(self.data)
 
 
 def get_loader(image_dir, batch_size, mode, num_workers=1):
-    """Build and return a data loader."""
+    """Build and return a data loader.
+    @param image_dir:
+    @param batch_size:
+    @param mode:
+    @param num_workers:
+    @return:
+    """
 
     dataset = SparseMoleCular(image_dir)
 
