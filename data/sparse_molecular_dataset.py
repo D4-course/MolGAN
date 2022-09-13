@@ -10,6 +10,7 @@ from datetime import datetime
 class SparseMolecularDataset:
     def load(self, filename, subset=1):
         """
+        Loads a file
         @param filename:
         @param subset:
         """
@@ -34,6 +35,7 @@ class SparseMolecularDataset:
 
     def save(self, filename):
         """
+        Saves the data in the dictionary
         @param filename:
         """
         with open(filename, "wb") as f:
@@ -49,6 +51,7 @@ class SparseMolecularDataset:
         test=0.1,
     ):
         """
+        Generates the file containing dataset
         @param filename:
         @param add_h:
         @param filters:

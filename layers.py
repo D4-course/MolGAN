@@ -8,6 +8,7 @@ from torch.nn.modules.module import Module
 class GraphConvolution(Module):
     def __init__(self, in_features, out_feature_list, b_dim, dropout):
         """
+        constructor for graph convolution
         @param in_features:
         @param out_feature_list:
         @param b_dim:
@@ -24,6 +25,7 @@ class GraphConvolution(Module):
 
     def forward(self, input, adj, activation=None):
         """
+        performs forward pass for the model
         @param input:
         @param adj:
         @param activation:
@@ -50,6 +52,7 @@ class GraphConvolution(Module):
 class GraphAggregation(Module):
     def __init__(self, in_features, out_features, b_dim, dropout):
         """
+        constructor for graph aggregation
         @param in_features:
         @param out_features:
         @param b_dim:
@@ -66,6 +69,7 @@ class GraphAggregation(Module):
 
     def forward(self, input, activation):
         """
+        performs forward pass for the model
         @param input:
         @param activation:
         @return:

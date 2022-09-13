@@ -257,6 +257,7 @@ class Solver(object):
 
     def postprocess(self, inputs: object, method: object, temperature: object = 1.0) -> object:
         """
+        performs postprocessing based on inputs, method and temperature
         @param inputs:
         @param method:
         @param temperature:
@@ -301,6 +302,7 @@ class Solver(object):
 
     def reward(self, mols: object) -> object:
         """
+        Reward function for the model
         @param mols:
         @return:
         """

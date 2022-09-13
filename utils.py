@@ -25,6 +25,7 @@ class MolecularMetrics(object):
     @staticmethod
     def _avoid_sanitization_error(op):
         """
+        Checks Value Errors in Input Value
         @param op:
         @return:
         """
@@ -36,6 +37,7 @@ class MolecularMetrics(object):
     @staticmethod
     def remap(x, x_min, x_max):
         """
+        normalises x value
         @param x:
         @param x_min:
         @param x_max:
@@ -46,6 +48,7 @@ class MolecularMetrics(object):
     @staticmethod
     def valid_lambda(x):
         """
+        checks if x is a valid molecular representation
         @param x:
         @return:
         """
@@ -54,6 +57,7 @@ class MolecularMetrics(object):
     @staticmethod
     def valid_lambda_special(x):
         """
+        checks if x is a valid molecular representation
         @param x:
         @return:
         """
@@ -63,6 +67,7 @@ class MolecularMetrics(object):
     @staticmethod
     def valid_scores(mols):
         """
+        checks if scores are valid
         @param mols:
         @return:
         """
@@ -73,6 +78,7 @@ class MolecularMetrics(object):
     @staticmethod
     def valid_filter(mols):
         """
+        checks if filters are valid
         @param mols:
         @return:
         """
@@ -81,6 +87,7 @@ class MolecularMetrics(object):
     @staticmethod
     def valid_total_score(mols):
         """
+        checks if total score is valid
         @param mols:
         @return:
         """
@@ -91,6 +98,7 @@ class MolecularMetrics(object):
     @staticmethod
     def novel_scores(mols, data):
         """
+         creates an array of molecules mapped to valid values
         @param mols:
         @param data:
         @return:
@@ -108,6 +116,7 @@ class MolecularMetrics(object):
     @staticmethod
     def novel_filter(mols, data):
         """
+        filters the array of molecules mapped to validity condition
         @param mols:
         @param data:
         @return:
@@ -123,6 +132,7 @@ class MolecularMetrics(object):
     @staticmethod
     def novel_total_score(mols, data):
         """
+        returns mean value of the novel score
         @param mols:
         @param data:
         @return:
@@ -134,6 +144,7 @@ class MolecularMetrics(object):
     @staticmethod
     def unique_scores(mols):
         """
+        returns unique scores
         @param mols:
         @return:
         """
@@ -158,6 +169,7 @@ class MolecularMetrics(object):
     @staticmethod
     def unique_total_score(mols):
         """
+        returns unique total score
         @param mols:
         @return:
         """
@@ -194,6 +206,7 @@ class MolecularMetrics(object):
     @staticmethod
     def natural_product_scores(mols, norm=False):
         """
+        calculates natural product scores
         @param mols:
         @param norm:
         @return:
@@ -236,6 +249,7 @@ class MolecularMetrics(object):
     @staticmethod
     def quantitative_estimation_druglikeness_scores(mols, norm=False):
         """
+        calculates quantitative estimation druglikeness scores of the reeived molecules
         @param mols:
         @param norm:
         @return:
@@ -257,6 +271,7 @@ class MolecularMetrics(object):
     @staticmethod
     def water_octanol_partition_coefficient_scores(mols, norm=False):
         """
+        calculates water octanol partition coefficient scores of the reeived molecules
         @param mols:
         @param norm:
         @return:
@@ -281,6 +296,7 @@ class MolecularMetrics(object):
     @staticmethod
     def _compute_SAS(mol):
         """
+        Computes sas values of the molecules
         @param mol:
         @return:
         """
@@ -354,6 +370,7 @@ class MolecularMetrics(object):
     @staticmethod
     def synthetic_accessibility_score_scores(mols, norm=False):
         """
+        Computes sas - scores of the molecules
         @param mols:
         @param norm:
         @return:
@@ -374,6 +391,7 @@ class MolecularMetrics(object):
     @staticmethod
     def diversity_scores(mols, data):
         """
+        Computes diversity scores of the molecules
         @param mols:
         @param data:
         @return:
@@ -401,6 +419,7 @@ class MolecularMetrics(object):
     @staticmethod
     def __compute_diversity(mol, fps):
         """
+        Computes diversity scores of the molecules
         @param mol:
         @param fps:
         @return:
@@ -415,6 +434,7 @@ class MolecularMetrics(object):
     @staticmethod
     def drugcandidate_scores(mols, data):
         """
+        Computes drug candidate scores of the molecules
         @param mols:
         @param data:
         @return:
@@ -437,6 +457,7 @@ class MolecularMetrics(object):
     @staticmethod
     def constant_bump(x, x_low, x_high, decay=0.025):
         """
+        Checks if there is any constant bump in the values
         @param x:
         @param x_low:
         @param x_high:
@@ -455,6 +476,7 @@ class MolecularMetrics(object):
 
 def mols2grid_image(mols, molsPerRow):
     """
+    Maps moledules to 2d grid
     @param mols:
     @param molsPerRow:
     @return:
@@ -469,6 +491,7 @@ def mols2grid_image(mols, molsPerRow):
 
 def classification_report(data, model, session, sample=False):
     """
+    generates classification report of the model
     @param data:
     @param model:
     @param session:
@@ -529,6 +552,7 @@ def classification_report(data, model, session, sample=False):
 
 def reconstructions(data, model, session, batch_dim=10, sample=False):
     """
+    Performs data reconstructions
     @param data:
     @param model:
     @param session:
@@ -566,6 +590,7 @@ def reconstructions(data, model, session, batch_dim=10, sample=False):
 
 def samples(data, model, session, embeddings, sample=False):
     """
+    extracts samples from data
     @param data:
     @param model:
     @param session:
@@ -588,6 +613,7 @@ def samples(data, model, session, embeddings, sample=False):
 
 def all_scores(mols, data, norm=False, reconstruction=False):
     """
+    returns all valid scores from the methods
     @param mols:
     @param data:
     @param norm:

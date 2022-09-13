@@ -9,6 +9,7 @@ from torch.backends import cudnn
 
 def str2bool(v: object) -> object:
     """
+    checks for not-null string
     @rtype: object
     """
     return v.lower() in ("true")
@@ -16,6 +17,7 @@ def str2bool(v: object) -> object:
 
 def main(config: object) -> object:
     """
+    root function that runs the codebase
     @param config:
     """
     # For fast training.

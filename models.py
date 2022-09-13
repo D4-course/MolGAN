@@ -44,6 +44,7 @@ class Generator(nn.Module):
 
     def __init__(self, conv_dims: object, z_dim: object, vertexes: object, edges: object, nodes: object, dropout: object) -> object:
         """
+        constructor for generator
         @param conv_dims:
         @param z_dim:
         @param vertexes:
@@ -70,6 +71,7 @@ class Generator(nn.Module):
 
     def forward(self, x: object) -> object:
         """
+        performs forward pass
         @param x:
         @return:
         """
@@ -95,6 +97,7 @@ class Discriminator(nn.Module):
 
     def __init__(self, conv_dim: object, m_dim: object, b_dim: object, dropout: object) -> object:
         """
+        constructor for generator
         @param conv_dim:
         @param m_dim:
         @param b_dim:
@@ -118,6 +121,7 @@ class Discriminator(nn.Module):
 
     def forward(self, adj: object, hidden: object, node: object, activatation: object = None) -> object:
         """
+        performs forward pass
         @param adj:
         @param hidden:
         @param node:
