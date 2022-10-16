@@ -1,5 +1,7 @@
 import argparse
 
+from yaml import parse
+
 
 def str2bool(v):
     return v.lower() in ['true']
@@ -47,7 +49,7 @@ def get_GAN_config():
     parser.add_argument('--model_save_step', type=int, default=1)
     parser.add_argument('--lr_update_step', type=int, default=1000)
 
-    # For training
+    # # For training
     config = parser.parse_args()
     config.mode = 'train'
     config.lambda_wgan = 0.0
@@ -59,15 +61,20 @@ def get_GAN_config():
     config.batch_size = 32
 
     # For testing
-    # config.mode = 'test'
-    # config.saving_dir = 'exp_results/VAE/2020-06-03_13-38-00'
-    # config.resume_epoch = 150
+    config.mode = 'test'
+    config.saving_dir = 'exp_results/VAE/2022-10-16_19-18-54'
+    config.resume_epoch = 150
 
     return config
 
 
+def t():
+    print("hi")
+    return 5
+
 def get_VAE_config():
     parser = argparse.ArgumentParser()
+    print(parser)
 
     # Model configuration.
     parser.add_argument('--z_dim', type=int, default=8, help='dimension of domain labels')
@@ -107,8 +114,11 @@ def get_VAE_config():
     parser.add_argument('--model_save_step', type=int, default=1)
     parser.add_argument('--lr_update_step', type=int, default=1000)
 
+    print(parser)
     # For training
     config = parser.parse_args()
+
+    
     config.mode = 'train'
     config.lambda_wgan = 1.0
     config.g_lr = config.d_lr = 1e-4
@@ -117,8 +127,8 @@ def get_VAE_config():
     config.num_epochs = 150
 
     # For testing
-    # config.mode = 'test'
-    # config.saving_dir = 'exp_results/VAE/2020-06-03_13-38-00'
-    # config.resume_epoch = 150
+    config.mode = 'test'
+    config.saving_dir = 'exp_results/VAE/2022-10-16_19-18-54'
+    config.resume_epoch = 150
 
     return config

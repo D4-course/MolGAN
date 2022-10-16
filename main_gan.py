@@ -27,7 +27,8 @@ def main(config):
         config.model_dir_path = os.path.join(config.saving_dir, 'model_dir')
         config.img_dir_path = os.path.join(config.saving_dir, 'img_dir')
     else:
-        a_test_time = get_date_postfix()
+        # a_test_time = get_date_postfix()
+        a_test_time = "final"
         config.saving_dir = os.path.join(config.saving_dir)
         config.log_dir_path = os.path.join(config.saving_dir, 'post_test', a_test_time, 'log_dir')
         config.model_dir_path = os.path.join(config.saving_dir, 'model_dir')
